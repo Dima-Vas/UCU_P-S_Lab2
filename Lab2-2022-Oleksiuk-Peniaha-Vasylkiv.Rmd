@@ -240,12 +240,13 @@ plot(Fs,
 curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
 ```
 
-__Next, proceed with all the remaining steps__
+In the first part of the task 2, I found the atomic mass of the element and using it I could easily find the parameter of Poisson distribution.
 
+In the second part of the second task, I found the sample means of $X_1,\dots,X_n$ and showed that for larger n, this distribution coincide with normal distribution. Also, I plotted the graphics and found the maximum difference between two distributions.
 
+In the last part, I was needed to find the largest possible value that have some bounds. Firstly, I found the sample of sums, then practically found this number. And in the end I used three theorems to find the largest n theoretically. So we can see that Markov's inequality and Chernoff bound have big inaccuracy or simply don't work here, however at the same time CLT is a $perfect$ theorem. Also maximum n(found a little above(`practically`)) coincide with largest n of CLT. That say to us that found maximum n is correct.
 
-__Do not forget to include several sentences summarizing your work and the conclusions you have made!__ 
-
+So, in $Task 2$ of this laboratory work, I saw the real applying of Poisson distribution in the real life.
 
 
 ### Task 3. 
