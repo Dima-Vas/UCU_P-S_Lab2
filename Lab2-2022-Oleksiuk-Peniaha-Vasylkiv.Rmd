@@ -210,135 +210,43 @@ hist(error_amount, col="red", xlab="The amount of errors in message", ylab="Freq
     +  calculate the number of elements of the sample which are less than critical value ($8 \times 10^8$) and calculate the empirical probability; comment whether it is close to the desired level \(0.95\)
 
 ```{r}
-teamidnumber <- 23
-
-t_years <- 30.1
-t_seconds <- t_years * 365.25 * 24 * 60 * 60
-
-lambda <- ln(2)/t_seconds # change this!
-
-m <- teamidnumber * 1e-6
-Na <- 6 * 1e23
-Molar <- 132.90545
-
-N <- m * Na / Molar # change this!
-
+lambda <- 1  # change this!
+N <- 100     # change this!
 mu <- N * lambda
-
 K <- 1e3
 n <- 5
-
 sample_means <- colMeans(matrix(rpois(n*K, lambda = mu), nrow=n))
 ```
+
 
 #### Next, calculate the parameters of the standard normal approximation
 
 ```{r}
-# nu <- mu
-sigma <- sqrt(mu/n)
+mu <- 0       # change this!
+sigma <- 1    # change this!
 ```
 
-#### Finding the maximum difference of ecdf and cdf.
-
-#### And now we can plot ecdf and cdf
+#### We can now plot ecdf and cdf
 
 ```{r}
-for (i in c(5, 10, 50)) {
-  n <- i
-  sample_means <- colMeans(matrix(rpois(n*K, lambda = mu), nrow=n))
-  sigma <- sqrt(mu/n) 
-  xlims <- c(mu-3*sigma,mu+3*sigma)
-  Fs <- ecdf(sample_means)
-  plot(Fs, 
-       xlim = xlims, 
-       ylim = c(0,1),
-       col = "blue",
-       lwd = 2,
-       main = sprintf("Comparison of ecdf and cdf, where n = %s", n))
-  curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
-  # for seeing the difference for different values of n
-  x <- seq(mu - 3 * sigma, mu + 3 * sigma, by = 6 * sigma / 200)
-  print(max(abs(Fs(x) - (pnorm(x, mean = mu, sd = sigma)))))
-}
+xlims <- c(mu-3*sigma,mu+3*sigma)
+Fs <- ecdf(sample_means)
+plot(Fs, 
+     xlim = xlims, 
+     ylim = c(0,1),
+     col = "blue",
+     lwd = 2,
+     main = "Comparison of ecdf and cdf")
+curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
 ```
 
-### finding the sum_s (when n is equal to 5)
+In the first part of the task 2, I found the atomic mass of the element and using it I could easily find the parameter of Poisson distribution.
 
-```{r}
-n <- 5
-sum_s = colSums(matrix(rpois(n*K, lambda = mu), nrow=n))
-# sum_s
-```
+In the second part of the second task, I found the sample means of $X_1,\dots,X_n$ and showed that for larger n, this distribution coincide with normal distribution. Also, I plotted the graphics and found the maximum difference between two distributions.
 
-### Finding the max n
+In the last part, I was needed to find the largest possible value that have some bounds. Firstly, I found the sample of sums, then practically found this number. And in the end I used three theorems to find the largest n theoretically. So we can see that Markov's inequality and Chernoff bound have big inaccuracy or simply don't work here, however at the same time CLT is a $perfect$ theorem. Also maximum n(found a little above(`practically`)) coincide with largest n of CLT. That say to us that found maximum n is correct.
 
-```{r}
-n_max <- 1
-while (TRUE) {
-  n <- n_max
-  every_sum <- colSums(matrix(rpois(n*K, lambda = mu), nrow=n))
-  if (length(every_sum[every_sum < 8 * 10^8]) / K >= 0.95){
-    n_max <- n_max + 1
-  } else {
-    n <- n - 1
-    break
-  }
-}
-n
-```
-
-### Markov's inequality
-
-We need to find $P(N \lt 8 * 10^8)$. Using Markov's inequality:
-$P(N \lt 8 * 10^8) = 1 - P(N \ge 8 * 10^8) \ge 1 - \frac{E(N)}{8 * 10^8}$
-Our expectation will be equal $E(N) = n * E(n_0)$, where n is amount of
-numbers. We also have condition that $P(N \lt 8 * 10^8) \ge 0.95$ Then :
-$1 - \frac{n * E(n_0)}{8 * 10^8} \ge 0.95$
-$n*E(n_0) \le 0.05 * 8 * 10^8$, my $E(n_0) = 75 768 954$
-$n \le \frac{4*10^7}{75 768 954}\approx 0.53$ So $n \le 0.53$.
-
-### Chernoff Bounds
-
-So we have:
-$P(N \le 8*10^8) = 1 - P(N \ge 8*10^8) ≥ 1 - \frac{E(e^{sN})}{e^{sa}}=[e^s = S; \lambda = \mu]=1-\frac{E(S^N)}{S^a}=1-\frac{n*E(S^{n_0})}{S^a}$
-We know that: $E(S^{n_0}) = G_S(n_0)=e^{\lambda(S-1)}$, where
-$\lambda = \mu$ Then: $1-\frac{n*e^{\mu(S-1)}}{S^a}$ Assume that for
-minimazing $\frac{e^{\mu(S-1)}}{S^a}$ our $S$ need to be $1$. Then we
-got: $1-n$.
-
-### CLT
-
-$P(N \le 8*10^8) = P(\frac{N-nE(n_0)}{\sigma * \sqrt n}\le \frac{8*10^8 - n*E(n_0)}{\sigma * \sqrt n})\approx\Phi(\frac{8*10^8 - n*E(n_0)}{\sigma * \sqrt n})$
-By condition $P(N \le 8*10^8) \ge 0.95$, we will have
-$\Phi(\frac{8*10^8 - n*E(n_0)}{\sigma * \sqrt n}) \ge 0.95$ Below, i
-code a function that will calculate the value.
-
-```{r}
-N <- 0
-while(TRUE){
-  if (pnorm((8*10^8 - N*mu)/(sigma*sqrt(N))) >= 0.95){
-    N <- N + 1
-  } else {
-    N <- N - 1
-    break
-  }
-}
-N
-```
-
-As we can see our $n≤10$.
-
-So we can see that Markov's inequality has big inaccuracy, however CLT
-is very accuracy. Also maximum n(found a litle above) coinside with CLT.
-That say to us that found maximum n is correct.
-
-
-__Next, proceed with all the remaining steps__
-
-
-
-__Do not forget to include several sentences summarizing your work and the conclusions you have made!__ 
-
+So, in $Task 2$ of this laboratory work, I saw the real applying of Poisson distribution in the real life.
 
 
 ### Task 3. 
